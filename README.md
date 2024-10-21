@@ -52,3 +52,25 @@ def confident_strategy(pred, t=0.8):
         return np.mean(pred[pred < 0.2])
     else:
         return np.mean(pred)
+
+### Augmentations
+
+Heavy augmentations were used by default. The Albumentations library supports most of the augmentations out of the box. The IsotropicResize augmentation was added.
+
+```python
+def create_train_transforms(size=300):
+    return Compose([
+        ImageCompression(quality_lower=60, quality_upper=100, p=0.5),
+        GaussNoise(p=0.1),
+        GaussianBlur(blur_limit=3, p=0.05),
+        HorizontalFlip(),
+        OneOf([
+            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_CUBIC),
+            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_LINEAR),
+            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_LINEAR, interpolation_up=cv2.INTER_LINEAR),
+        ], p=1),
+        PadIfNeeded(min_height=size, min_width=size, border_mode=cv2.BORDER_CONSTANT),
+        OneOf([RandomBrightnessContrast(), FancyPCA(), HueSaturationValue()], p=0.7),
+        ToGray(p=0.2),
+        ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=10, border_mode=cv2.BORDER_CONSTANT, p=0.5),
+    ])
